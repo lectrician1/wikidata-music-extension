@@ -11,6 +11,7 @@ const wdk = WBK({
 });
 
 const property = 'P1954';
+const releaseGroupIDs = ['Q106042566', 'Q482994', 'Q10590726', 'Q134556', 'Q107154516', 'Q169930'];
 
 function getEntityLabel(id) {
   var label;
@@ -35,21 +36,26 @@ function appendDiscogsValue(wikidataProp, discogsProp, value) {
     .append(`<br>Discogs ${discogsProp}:<br>${value}`);
 }
 
-if ($('#' + property).length) {
-  // Get qid
-  var entityurl = new URL(window.location.href);
-  var q = entityurl.pathname.substring(6);
+var entity;
 
-  var apiurl = wdk.getEntities({
-    ids: [q],
-  });
-  fetch(apiurl)
-    .then((response) => response.json())
-    // Turns the response in an array of simplified entities
-    .then(wdk.parse.wb.entities)
-    .then((d) => {
-      var e = d[q];
-      var masterid = parseInt(e.claims[property][0]);
+// Get qid
+var entityurl = new URL(window.location.href);
+var qid = entityurl.pathname.substring(6);
+
+var apiurl = wdk.getEntities({
+  ids: [qid],
+});
+fetch(apiurl)
+  .then((response) => response.json())
+  // Turns the response in an array of simplified entities
+  .then(wdk.parse.wb.entities)
+  .then((d) => {
+    entity = d[qid];
+
+
+    if ($('#' + property).length) {
+
+      var masterid = parseInt(entity.claims[property][0]);
 
       var db = new Discogs().database();
       db.getMaster(masterid, function (err, data) {
@@ -122,5 +128,21 @@ if ($('#' + property).length) {
           $('#extra-expanded').slideToggle('fast');
         });
       });
-    });
-}
+    }
+    else {
+      if (entity.claims.P31.some(r => releaseGroupIDs.includes(r))) {
+        db.search('feel special', { 'type': 'master' }, function (err, data) {
+
+          const discogsResultsID = "discogsResults"
+
+          $('.mw-body-subheader').eq(0).after(`<ol id="${discogsResultsID}"></ol>`)
+
+          for (result in data.results) {
+            $(`#${discogsResultsID}`).append(`<li><a href=${result.resource_url}>${result.title}</a>, ${result.year}</li>`)
+          }
+
+        })
+      }
+    }
+
+  })
