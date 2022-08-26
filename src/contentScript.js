@@ -2,6 +2,8 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 
+var tabId;
+
 require('jquery-sendkeys');
 var Discogs = require('disconnect').Client;
 
@@ -119,8 +121,9 @@ jQuery(() => {
                     $('.wikibase-snakview-property').children('.ui-suggester-input').sendkeys(wikidataProp)
 
                     setTimeout(function () {
-                      $('.ui-ooMenu:not(.wikibase-entitysearch-list) > .ui-ooMenu-item').eq(0).trigger('mouseenter.ooMenu')
-                      $('.ui-ooMenu:not(.wikibase-entitysearch-list) > .ui-ooMenu-item').eq(0).trigger({type:'mousedown.ooMenu', which: 1})
+                      chrome.runtime.sendMessage('get-tabId', function(response) {
+                      });
+                        
                     }, 1000)
                   }, 1000)
                   
@@ -142,3 +145,6 @@ jQuery(() => {
   }
 
 })
+
+
+
